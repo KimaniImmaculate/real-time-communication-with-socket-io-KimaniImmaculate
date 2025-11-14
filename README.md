@@ -10,7 +10,6 @@ A simple real-time chat application built with Node.js, Express and Socket.io fo
 - [Deployed URLs](#deployed-urls)
 - [Setup & Run (Development)](#setup--run-development)
 - [Build & Deploy](#build--deploy)
-- [Notes & Configuration](#notes--configuration)
 
 ## Project Overview
 
@@ -98,15 +97,7 @@ app.get('*', (req, res) => {
 ```
 
 Or host the client separately (Netlify, Vercel, GitHub Pages) and the server on a platform that supports WebSockets (Render, Fly, Heroku alternatives).
-## Notes & Configuration
 
-- Server: default port is `5000` (see `server.js`). The server uses CORS to allow `http://localhost:3000` in development.
-- Client: open `client/src/socket/socket.js` and update `SOCKET_URL` to your deployed server URL before building for production:
-
-```javascript
-// client/src/socket/socket.js
-const SOCKET_URL = "https://your-server-url.example.com";
-```
 
 
 
