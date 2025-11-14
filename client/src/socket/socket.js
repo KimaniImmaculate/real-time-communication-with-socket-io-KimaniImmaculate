@@ -1,140 +1,84 @@
-// socket.js - Socket.io client setup
+// client/src/socket/socket.js
+import { io } from "socket.io-client";
+import { useState, useEffect } from "react";
 
-import { io } from 'socket.io-client';
-import { useEffect, useState } from 'react';
+const SOCKET_URL = "http://localhost:5000";
 
-// Socket.io connection URL
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
-
-// Create socket instance
 export const socket = io(SOCKET_URL, {
   autoConnect: false,
   reconnection: true,
   reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
+  reconnectionDelay: 1000
 });
 
-// Custom hook for using socket.io
 export const useSocket = () => {
   const [isConnected, setIsConnected] = useState(socket.connected);
-  const [lastMessage, setLastMessage] = useState(null);
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
 
-  // Connect to socket server
-  const connect = (username) => {
+  const connect = (username, room) => {
     socket.connect();
-    if (username) {
-      socket.emit('user_join', username);
-    }
+    socket.emit("user_join", { username, room });
   };
 
-  // Disconnect from socket server
-  const disconnect = () => {
-    socket.disconnect();
+  const disconnect = () => socket.disconnect();
+
+  const sendMessage = (message, room) => {
+    socket.emit("send_message", { message, room });
   };
 
-  // Send a message
-  const sendMessage = (message) => {
-    socket.emit('send_message', { message });
-  };
-
-  // Send a private message
   const sendPrivateMessage = (to, message) => {
-    socket.emit('private_message', { to, message });
+    socket.emit("private_message", { to, message });
   };
 
-  // Set typing status
-  const setTyping = (isTyping) => {
-    socket.emit('typing', isTyping);
+  const setTyping = (isTyping, room) => {
+    socket.emit("typing", { isTyping, room });
   };
 
-  // Socket event listeners
   useEffect(() => {
-    // Connection events
-    const onConnect = () => {
-      setIsConnected(true);
-    };
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
 
-    const onDisconnect = () => {
-      setIsConnected(false);
-    };
+    const onReceiveMessage = (msg) => setMessages(prev => [...prev, msg]);
+    const onPrivateMessage = (msg) => setMessages(prev => [...prev, msg]);
 
-    // Message events
-    const onReceiveMessage = (message) => {
-      setLastMessage(message);
-      setMessages((prev) => [...prev, message]);
-    };
+    const onUserList = (list) => setUsers(list);
+    const onUserJoined = (user) => setMessages(prev => [
+      ...prev,
+      { id: Date.now(), system: true, message: `${user.username} joined the room`, timestamp: new Date().toISOString() }
+    ]);
+    const onUserLeft = (user) => setMessages(prev => [
+      ...prev,
+      { id: Date.now(), system: true, message: `${user.username} left the room`, timestamp: new Date().toISOString() }
+    ]);
 
-    const onPrivateMessage = (message) => {
-      setLastMessage(message);
-      setMessages((prev) => [...prev, message]);
-    };
+    const onTypingUsers = (list) => setTypingUsers(list);
 
-    // User events
-    const onUserList = (userList) => {
-      setUsers(userList);
-    };
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("receive_message", onReceiveMessage);
+    socket.on("private_message", onPrivateMessage);
+    socket.on("user_list", onUserList);
+    socket.on("user_joined", onUserJoined);
+    socket.on("user_left", onUserLeft);
+    socket.on("typing_users", onTypingUsers);
 
-    const onUserJoined = (user) => {
-      // You could add a system message here
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          system: true,
-          message: `${user.username} joined the chat`,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-    };
-
-    const onUserLeft = (user) => {
-      // You could add a system message here
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          system: true,
-          message: `${user.username} left the chat`,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-    };
-
-    // Typing events
-    const onTypingUsers = (users) => {
-      setTypingUsers(users);
-    };
-
-    // Register event listeners
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
-    socket.on('receive_message', onReceiveMessage);
-    socket.on('private_message', onPrivateMessage);
-    socket.on('user_list', onUserList);
-    socket.on('user_joined', onUserJoined);
-    socket.on('user_left', onUserLeft);
-    socket.on('typing_users', onTypingUsers);
-
-    // Clean up event listeners
     return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
-      socket.off('receive_message', onReceiveMessage);
-      socket.off('private_message', onPrivateMessage);
-      socket.off('user_list', onUserList);
-      socket.off('user_joined', onUserJoined);
-      socket.off('user_left', onUserLeft);
-      socket.off('typing_users', onTypingUsers);
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("receive_message", onReceiveMessage);
+      socket.off("private_message", onPrivateMessage);
+      socket.off("user_list", onUserList);
+      socket.off("user_joined", onUserJoined);
+      socket.off("user_left", onUserLeft);
+      socket.off("typing_users", onTypingUsers);
     };
   }, []);
 
   return {
     socket,
     isConnected,
-    lastMessage,
     messages,
     users,
     typingUsers,
@@ -142,8 +86,8 @@ export const useSocket = () => {
     disconnect,
     sendMessage,
     sendPrivateMessage,
-    setTyping,
+    setTyping
   };
 };
 
-export default socket; 
+
