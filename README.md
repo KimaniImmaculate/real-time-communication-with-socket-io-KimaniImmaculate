@@ -1,77 +1,112 @@
-# Real-Time Chat Application with Socket.io
+# Real-time Chat with Socket.io
 
-This assignment focuses on building a real-time chat application using Socket.io, implementing bidirectional communication between clients and server.
+A simple real-time chat application built with Node.js, Express and Socket.io for the server and React for the client. This project demonstrates real-time messaging, user presence, typing indicators and private messaging using WebSockets.
 
-## Assignment Overview
+## Table of Contents
 
-You will build a chat application with the following features:
-1. Real-time messaging using Socket.io
-2. User authentication and presence
-3. Multiple chat rooms or private messaging
-4. Real-time notifications
-5. Advanced features like typing indicators and read receipts
+- [Project Overview](#project-overview)
+- [Features Implemented](#features-implemented)
+- [Screenshots & Demo](#screenshots--demo)
+- [Deployed URLs](#deployed-urls)
+- [Setup & Run (Development)](#setup--run-development)
+- [Build & Deploy](#build--deploy)
+- [Notes & Configuration](#notes--configuration)
 
-## Project Structure
+## Project Overview
 
+This repository contains a Socket.io powered chat application with a Node/Express backend and a React frontend. The backend manages socket connections, user lists, rooms, broadcasting messages, private messages and typing indicators. The frontend connects via `socket.io-client`, provides a login screen, and a chat interface showing messages and active users.
+Project structure (top-level):
+
+- `server.js` - Express + Socket.io server
+- `client/` - React application (create-react-app)
+- `assets/` - images/screenshots (place demo images here)
+## Features Implemented
+
+- Real-time messaging with Socket.io
+- User join/leave and presence list (per room)
+- Typing indicators
+- Private messaging
+- Auto-scroll to newest message (hook in `client/src/hooks`)
+- New-message sound notification utility (`client/src/utils/sound.js`)
+- Simple login screen to choose username and room
+
+## Screenshots & Demo
+
+
+![App Screenshot 1](assets/login.png)
+![App Screenshot 2](assets/room.png)
+![App Screenshot 3](assets/functionalities.png)
+
+## Deployed URLs (To be updated)
+
+- Client (frontend): https://your-client-url.example.com
+- Server (API / Socket server): https://your-server-url.example.com
+
+Notes:
+- The client currently connects to `http://localhost:5000` by default (see `client/src/socket/socket.js`). Update that URL to your server's deployed URL before building the client for production.
+## Setup & Run (Development)
+
+Prerequisites:
+
+- Node.js (>= 14) and npm
+
+1) Clone the repository
+
+```powershell
+git clone <REPO_URL>
+cd real-time-communication-with-socket-io-KimaniImmaculate
 ```
-socketio-chat/
-├── client/                 # React front-end
-│   ├── public/             # Static files
-│   ├── src/                # React source code
-│   │   ├── components/     # UI components
-│   │   ├── context/        # React context providers
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── pages/          # Page components
-│   │   ├── socket/         # Socket.io client setup
-│   │   └── App.jsx         # Main application component
-│   └── package.json        # Client dependencies
-├── server/                 # Node.js back-end
-│   ├── config/             # Configuration files
-│   ├── controllers/        # Socket event handlers
-│   ├── models/             # Data models
-│   ├── socket/             # Socket.io server setup
-│   ├── utils/              # Utility functions
-│   ├── server.js           # Main server file
-│   └── package.json        # Server dependencies
-└── README.md               # Project documentation
+
+2) Install root dependencies (for server)
+
+```powershell
+npm install
 ```
 
-## Getting Started
+3) Start the server (in one terminal)
 
-1. Accept the GitHub Classroom assignment invitation
-2. Clone your personal repository that was created by GitHub Classroom
-3. Follow the setup instructions in the `Week5-Assignment.md` file
-4. Complete the tasks outlined in the assignment
+```powershell
+npm run dev
+# or: npm start
+```
 
-## Files Included
+4) Start the client (in a second terminal)
 
-- `Week5-Assignment.md`: Detailed assignment instructions
-- Starter code for both client and server:
-  - Basic project structure
-  - Socket.io configuration templates
-  - Sample components for the chat interface
+```powershell
+cd client
+npm install
+npm start
+```
 
-## Requirements
+The client runs on `http://localhost:3000` and the server listens on port `5000` by default. The client is configured to connect to `http://localhost:5000` (see `client/src/socket/socket.js`).
+## Build & Deploy
 
-- Node.js (v18 or higher)
-- npm or yarn
-- Modern web browser
-- Basic understanding of React and Express
+To build the client for production from the repository root:
 
-## Submission
+```powershell
+npm run build
+```
 
-Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
+This script will `cd` into the `client/`, install dependencies and run the React build. Note: the server in `server.js` currently does not serve the `client/build` folder by default. If you want to serve the client from the same Express server, you can add static serving in `server.js`:
 
-1. Complete both the client and server portions of the application
-2. Implement the core chat functionality
-3. Add at least 3 advanced features
-4. Document your setup process and features in the README.md
-5. Include screenshots or GIFs of your working application
-6. Optional: Deploy your application and add the URLs to your README.md
+```javascript
+// after your other app.use() calls
+app.use(express.static(path.join(__dirname, 'client', 'build')));
+app.get('*', (req, res) => {
+	res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
+});
+```
 
-## Resources
+Or host the client separately (Netlify, Vercel, GitHub Pages) and the server on a platform that supports WebSockets (Render, Fly, Heroku alternatives).
+## Notes & Configuration
 
-- [Socket.io Documentation](https://socket.io/docs/v4/)
-- [React Documentation](https://react.dev/)
-- [Express.js Documentation](https://expressjs.com/)
-- [Building a Chat Application with Socket.io](https://socket.io/get-started/chat) 
+- Server: default port is `5000` (see `server.js`). The server uses CORS to allow `http://localhost:3000` in development.
+- Client: open `client/src/socket/socket.js` and update `SOCKET_URL` to your deployed server URL before building for production:
+
+```javascript
+// client/src/socket/socket.js
+const SOCKET_URL = "https://your-server-url.example.com";
+```
+
+
+
